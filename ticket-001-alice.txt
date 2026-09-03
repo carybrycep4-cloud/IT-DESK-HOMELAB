@@ -1,0 +1,72 @@
+
+Ticket #001 — Alice Account Locked (Local Linux)
+
+INTAKE:
+
+Requester: Alice (simulated end user)
+Role/Dept: Finance (simulated)
+Channel: eMail (simulated)
+Date/Time Received: 2026-09-02 (local)
+Affected user/account: alice (local Linux user)
+System/Location: Local Linux environment (Linux terminal)
+Summary: User reports they cannot log in; password is not being accepted.
+Business impact: User cannot access their workstation environment to complete work.
+Priority: P2 (User unable to log in)
+
+CUSTOMER REPORT:
+   alice@email.com: "My password isn’t working. I can’t log in."
+
+INITIAL TRIAGE
+Clarifying questions asked (or would ask):
+- When did it last work?
+- Any recent password change?
+- Any message shown (example: account locked, password expired)?
+- Caps Loc  keyboard layout correct?
+
+Observations:
+- Issue reproduced locally by attempting to switch to the user context.
+
+TROUBLESHOOTING / INVESTIGATION (Internal Notes)
+Actions taken:
+- Checked account password status:
+  passwd -S alice
+- Checked password aging & expiration policy:
+  chage -l alice
+- Reviewed authentication logs (if present):
+  /var/log/auth.log or /var/log/secure
+
+Findings:
+- passwd -S alice showed the account in Locked state (L).
+- This is consistent with a lockout scenario (likely caused by too many failed login attempts or an administrative lock).
+
+RESOLUTION
+Fix applied:
+- Unlocked the account:
+ sudo passwd -u alice
+ sudo passwd -S alice
+- reset password:
+ sudo passwd alice
+
+Result:
+- passwd -S alice changed from L to P (password set / not locked).
+
+VERIFICATION
+- Verified authentication works by switching into the account locally:
+  su - alice
+- Confirmed whoami returns alice.
+
+EVIDENCE / ATTACHMENTS
+runbook-001-alice.sh
+
+CUSTOMER COMMUNICATION (Public Update)
+Unlocked the account and confirmed login is working again. Recommended entering credentials carefully and confirming keyboard layout to avoid repeat lockouts.
+
+ROOT CAUSE (Most Likely)
+Account lockout after repeated failed authentication attempts (mistyped password / keyboard layout / old password).
+
+PREVENTION / RECOMMENDATIONS
+If this is recurring: implement/confirm clear lockout policy messaging and self-service password reset guidance (if applicable). User guidance: confirm Caps Lock and keybo>
+
+TICKET CLOSURE
+Status: Resolved
+Resolved date: 2026-09-02
