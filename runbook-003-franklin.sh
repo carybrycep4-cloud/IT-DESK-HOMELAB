@@ -5,7 +5,7 @@
 sudo systemctl stop cups.service
 
 
-(-- TROUBLESHOOTING --)
+ (-- TROUBLESHOOTING --)
 
 ping -c 2 127.0.0.1
 lpstat -p -d
