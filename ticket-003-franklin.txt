@@ -1,0 +1,92 @@
+Ticket #003 — Franklin Local Print Service Failure (Local Linux)
+
+INTAKE:
+
+Requester: Franklin (simulated end user)
+Role/Dept: Operations (simulated)
+Channel: Phone / Chat (simulated)
+Date/Time Received: 2026-09-04 (local)
+Affected user/account: franklin (local Linux user)
+System/Location: Local Linux workstation
+Summary: User reports active network connection but cannot reach or print to the network printer.
+Business impact: User cannot print daily physical shipping/operations manifests.
+Priority: P2 (Workaround needed, business operation degraded)
+
+CUSTOMER REPORT:
+
+   franklin@email.com: "My internet is working fine and I can load websites, but every print job I send gets stuck or says printer unavailable."
+
+INITIAL TRIAGE
+
+Clarifying questions asked (or would ask):
+- Can you ping the network printer's IP address directly?
+- Are other users in your department able to print to this printer?
+- Is there a specific error shown in your system settings printer queue?
+
+Observations:
+- Network interface is active (ICMP ping to local gateway and printer IP succeeds).
+- issue is localized to print service daemon / spooling.
+
+
+TROUBLESHOOTING / INVESTIGATION (Internal Notes)
+
+Actions taken:
+- Verified network path to network printer:
+  ping -c 3 192.168.1.200
+- Checked local CUPS print spooler service status:
+  systemctl status cups
+- Checked listening ports for print protocols (IPP/631):
+  ss -tulpn | grep 631
+- Inspected print queue status:
+  lpstat -p -d
+
+Findings:
+- Ping to printer IP (192.168.1.200) returned 0% packet loss, confirming network link.
+- `systemctl status cups` showed `inactive (dead)`. The local print daemon was stopped.
+- `lpstat` failed with `lpstat: Scheduler is not running`.
+
+
+RESOLUTION
+
+Fix applied:
+- Started and enabled the CUPS service:
+  sudo systemctl start cups
+  sudo systemctl enable cups
+
+Result:
+- `systemctl status cups` changed to `active (running)`.
+- `lpstat -p` successfully listed configured network printers as idle/ready.
+
+
+VERIFICATION
+
+- Sent a test print page via CLI/GUI:
+  lp -d Network_Printer /etc/hosts
+- Checked queue to confirm job completed:
+  lpq
+
+
+EVIDENCE / ATTACHMENTS
+
+runbook-003-franklin.sh
+
+
+CUSTOMER COMMUNICATION (Public Update)
+
+Resolved an issue where the local printing system service was stopped. Restarted the printing service and verified test page output. Printing capabilities are restored.
+
+
+ROOT CAUSE (Most Likely)
+
+The local CUPS print daemon crashed or was stopped following a background update or system sleep cycle.
+
+
+PREVENTION / RECOMMENDATIONS
+
+Ensure the `cups` service is set to automatically start at boot (`systemctl enable cups`).
+
+
+TICKET CLOSURE
+
+Status: Resolved
+Resolved date: 2026-09-04
