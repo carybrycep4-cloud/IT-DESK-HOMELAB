@@ -13,3 +13,9 @@ sudo passwd -S alice
 sudo passwd alice
 
 (Reset Password)
+
+su - alice 
+
+whoami 
+
+ (Confirmed "alice") 
