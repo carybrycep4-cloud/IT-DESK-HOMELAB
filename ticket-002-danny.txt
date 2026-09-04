@@ -1,0 +1,80 @@
+Ticket #002 — Danny Python Script Execution Failure (Local Linux)
+
+INTAKE:
+
+Requester: Danny (simulated end user)
+Role/Dept: Software Development (simulated)
+Channel: eMail (simulated)
+Date/Time Received: 2026-09-04 (local)
+Affected user/account: danny (local Linux user)
+System/Location: Local Linux environment (Linux terminal)
+Summary: User reports sys-check-demo.py is not executable from the terminal despite setting executable permissions.
+Business impact: User cannot run automated system status checks on their local workstation.
+Priority: P3 (Individual user workflow blocked, workaround available by calling Python explicitly)
+
+CUSTOMER REPORT:
+
+
+danny@email.com: "I created a script called sys-check-demo.py to pull system uptime. I ran chmod +x, but every time I try to run ./sys-check-demo.py directly in my terminal, I get syntax errors / command execution failure."
+
+
+INITIAL TRIAGE
+
+
+Clarifying questions asked (or would ask):
+ * Are you able to run the script using python3 sys-check-demo.py?
+ * What exact error message appears in the terminal when running ./sys-check-demo.py?
+ * What are the current permissions on the file (ls -la sys-check-demo.py)?
+Observations:
+ * User verified terminal and Python environment are functional.
+ * Running the script directly via path (./sys-check-demo.py) fails, but passing it to python3 works.
+
+
+TROUBLESHOOTING / INVESTIGATION (Internal Notes)
+
+Actions taken:
+ * Checked file permissions and ownership:
+   ls -la sys-check-demo.py
+ * Inspected file encoding and type identification:
+   file sys-check-demo.py
+ * Checked top lines of the file for interpreter instructions:
+   head -n 5 sys-check-demo.py
+ * Tested direct interpreter execution:
+   python3 ./sys-check-demo.py
+Findings:
+ * ls -la confirmed -rwxr-xr-x (executable bit is set correctly).
+ * file command identified it as standard ASCII text.
+ * head confirmed line 1 started directly with import platform. Missing shebang (#!/usr/bin/env python3), causing the system shell (Bash/Sh) to attempt parsing Python syntax natively.
+RESOLUTION
+Fix applied:
+ * Prepended the standard env shebang directive to line 1 of sys-check-demo.py:
+   #!/usr/bin/env python3
+Result:
+ * Kernel now properly identifies and invokes /usr/bin/env python3 when ./sys-check-demo.py is executed directly.
+
+
+VERIFICATION
+
+ * Tested direct execution in terminal:
+   ./sys-check-demo.py
+ * Confirmed output correctly returns host system specs and timestamp without syntax or interpreter errors.
+EVIDENCE / ATTACHMENTS
+sys-check-demo.py
+
+
+CUSTOMER COMMUNICATION (Public Update)
+
+Added missing shebang directive (#!/usr/bin/env python3) to the top of sys-check-demo.py. The script now executes cleanly via ./sys-check-demo.py.
+ROOT CAUSE (Most Likely)
+Script was missing an explicit executable interpreter header (shebang), forcing the operating system shell to attempt executing Python code as shell script commands.
+
+
+PREVENTION / RECOMMENDATIONS
+
+Ensure all standalone executable CLI scripts created in Linux include a shebang line pointing to the target interpreter (e.g., #!/usr/bin/env python3 or #!/bin/bash) on line 1.
+
+
+TICKET CLOSURE
+
+Status: Resolved
+Resolved date: 2026-09-04
